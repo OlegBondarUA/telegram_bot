@@ -1,12 +1,13 @@
 import datetime
 import requests
-
+import os
+from boto.s3.connection import S3Connection
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 
-open_weather_token = '6b5e304be9e747c2293c99ce1941d06f'
-tg_bot_token = '5534124405:AAFDfqwiHAU5aBcEmKBhTSBZtWC9552tfJM'
+weather_token = S3Connection(os.environ['open_weather_token'])
+bot_token = S3Connection(os.environ['tg_bot_token'])
 
 
 def get_weather(city, open_weather_toke):
@@ -54,10 +55,12 @@ def get_weather(city, open_weather_toke):
               f'Гарного дня!')
     except Exception as ex:
         print(ex)
-        print('Перевірте назву мвста')
+        print('Перевірте назву міста')
 
 
-bot = Bot(token=tg_bot_token)
+sity = input('city?:')
+get_weather(sity, weather_token)
+bot = Bot(token=bot_token)
 dp = Dispatcher(bot)
 
 
@@ -81,7 +84,7 @@ async def egt_weather(message: types.Message):
     try:
         r = requests.get(
             f'https://api.openweathermap.org/data/2.5/weather?q={message.text}'
-            f'&appid={open_weather_token}&units=metric'
+            f'&appid={weather_token}&units=metric'
         )
         data = r.json()
 
@@ -118,4 +121,3 @@ async def egt_weather(message: types.Message):
 
 if __name__ == '__main__':
     executor.start_polling(dp)
-
