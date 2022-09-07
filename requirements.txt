@@ -1,5 +1,4 @@
 datetime
 requests
 aiogram
-os
 boto
