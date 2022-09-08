@@ -1,13 +1,12 @@
 import datetime
 import requests
 import os
-from boto.s3.connection import S3Connection
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 
-weather_token = S3Connection(os.environ['open_weather_token'])
-bot_token = S3Connection(os.environ['tg_bot_token'])
+weather_token = os.getenv('open_weather_token')
+bot_token = os.getenv('tg_bot_token')
 
 
 def get_weather(city, open_weather_toke):
