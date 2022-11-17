@@ -1,12 +1,13 @@
 import requests
 import datetime
-import os
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
+from decouple import config
 
-open_weather_token = os.getenv('WEATHER')
-tg_bot_token = os.getenv('TELEGRAM_BOT')
+
+open_weather_token = config('WEATHER_KEY')
+tg_bot_token = config('TELEGRAM_TOKEN')
 bot = Bot(token=tg_bot_token)
 dp = Dispatcher(bot)
 
