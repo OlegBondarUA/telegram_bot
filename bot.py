@@ -1,9 +1,9 @@
 import datetime
 import requests
-import os
+from decouple import config
 
 
-open_weather_token = os.getenv('WEATHER')
+open_weather_token = config('WEATHER_KEY')
 
 
 def get_weather(city, open_weather_toke):
