@@ -11,10 +11,15 @@ def get_weather(city, open_weather_toke):
     code_to_smile = {
         'Clear': 'Ясно \U00002600',
         'Clouds': 'Хмарно \U00002601',
+        'Overcast clouds': 'Похмурі хмари \U00002601',
         'Rain': 'Дощ \U00002614',
+        'Light rain': 'Невеликий дощ \U00002614',
         'Drizzle': 'Дощ \U00002614',
         'Thunderstorm': 'Сніг \U0001F328',
-        'Mist': 'Туман \U0001F32B'
+        'Snow': 'Сніг \U0001F328',
+        'Light snow': 'Невеликий сніг \U0001F328',
+        'Mist': 'Туман \U0001F32B',
+        'Light mist': 'Туман \U0001F32B'
     }
 
     try:

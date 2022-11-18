@@ -63,7 +63,7 @@ async def egt_weather(message: types.Message):
             f'Захід сонця: {sunset_timestamp}\n'
             f'Тривалість дня: {length_of_the_day}\n'
             f'Гарного дня!')
-    except:
+    except Exception:
         await message.reply('\U00002620Перевірте назву міста\U00002620')
 
 
