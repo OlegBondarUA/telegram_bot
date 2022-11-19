@@ -26,7 +26,7 @@ def get_weather(city, weather_toke):
 
     day_1 = {
         'city': data['city']['name'],
-        'date': str(datetime.fromtimestamp(data['list'][0]['dt']))[:10],
+        'date': str(datetime.fromtimestamp(data['list'][0]['dt'])),
         'humidity': data['list'][0]['main']['humidity'],
         'pressure': data['list'][0]['main']['pressure'],
         'temp': data['list'][0]['main']['temp'],
@@ -42,13 +42,13 @@ def get_weather(city, weather_toke):
 
     day_2 = {
         'city': data['city']['name'],
-        'date': str(datetime.fromtimestamp(data['list'][10]['dt']))[:10],
-        'humidity': data['list'][10]['main']['humidity'],
-        'pressure': data['list'][10]['main']['pressure'],
-        'temp': data['list'][10]['main']['temp'],
-        'weather': data['list'][10]['weather'][0]['main'],
-        'wind': data['list'][10]['wind']['speed'],
-        'visibility': data['list'][10]['visibility'],
+        'date': str(datetime.fromtimestamp(data['list'][8]['dt'])),
+        'humidity': data['list'][8]['main']['humidity'],
+        'pressure': data['list'][8]['main']['pressure'],
+        'temp': data['list'][8]['main']['temp'],
+        'weather': data['list'][8]['weather'][0]['main'],
+        'wind': data['list'][8]['wind']['speed'],
+        'visibility': data['list'][8]['visibility'],
     }
 
     if day_2['weather'] in code_to_smile:
@@ -58,13 +58,13 @@ def get_weather(city, weather_toke):
 
     day_3 = {
         'city': data['city']['name'],
-        'date': str(datetime.fromtimestamp(data['list'][18]['dt']))[:10],
-        'humidity': data['list'][18]['main']['humidity'],
-        'pressure': data['list'][18]['main']['pressure'],
-        'temp': data['list'][18]['main']['temp'],
-        'weather': data['list'][18]['weather'][0]['main'],
-        'wind': data['list'][18]['wind']['speed'],
-        'visibility': data['list'][18]['visibility'],
+        'date': str(datetime.fromtimestamp(data['list'][16]['dt'])),
+        'humidity': data['list'][16]['main']['humidity'],
+        'pressure': data['list'][16]['main']['pressure'],
+        'temp': data['list'][16]['main']['temp'],
+        'weather': data['list'][16]['weather'][0]['main'],
+        'wind': data['list'][16]['wind']['speed'],
+        'visibility': data['list'][16]['visibility'],
     }
 
     if day_3['weather'] in code_to_smile:
@@ -74,13 +74,13 @@ def get_weather(city, weather_toke):
 
     day_4 = {
         'city': data['city']['name'],
-        'date': str(datetime.fromtimestamp(data['list'][26]['dt']))[:10],
-        'humidity': data['list'][26]['main']['humidity'],
-        'pressure': data['list'][26]['main']['pressure'],
-        'temp': data['list'][26]['main']['temp'],
-        'weather': data['list'][26]['weather'][0]['main'],
-        'wind': data['list'][26]['wind']['speed'],
-        'visibility': data['list'][26]['visibility'],
+        'date': str(datetime.fromtimestamp(data['list'][24]['dt'])),
+        'humidity': data['list'][24]['main']['humidity'],
+        'pressure': data['list'][24]['main']['pressure'],
+        'temp': data['list'][24]['main']['temp'],
+        'weather': data['list'][24]['weather'][0]['main'],
+        'wind': data['list'][24]['wind']['speed'],
+        'visibility': data['list'][24]['visibility'],
     }
 
     if day_4['weather'] in code_to_smile:
@@ -90,13 +90,13 @@ def get_weather(city, weather_toke):
 
     day_5 = {
         'city': data['city']['name'],
-        'date': str(datetime.fromtimestamp(data['list'][34]['dt']))[:10],
-        'humidity': data['list'][34]['main']['humidity'],
-        'pressure': data['list'][34]['main']['pressure'],
-        'temp': data['list'][34]['main']['temp'],
-        'weather': data['list'][34]['weather'][0]['main'],
-        'wind': data['list'][34]['wind']['speed'],
-        'visibility': data['list'][34]['visibility'],
+        'date': str(datetime.fromtimestamp(data['list'][32]['dt'])),
+        'humidity': data['list'][32]['main']['humidity'],
+        'pressure': data['list'][32]['main']['pressure'],
+        'temp': data['list'][32]['main']['temp'],
+        'weather': data['list'][32]['weather'][0]['main'],
+        'wind': data['list'][32]['wind']['speed'],
+        'visibility': data['list'][32]['visibility'],
     }
 
     if day_5['weather'] in code_to_smile:
