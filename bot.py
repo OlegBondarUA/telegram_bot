@@ -12,13 +12,14 @@ from decouple import config
 
 open_weather_token = config('WEATHER_KEY')
 tg_bot_token = config('TELEGRAM_TOKEN')
-bot = Bot(token=tg_bot_token)
 storage = MemoryStorage()
+bot = Bot(token=tg_bot_token)
+
 dp = Dispatcher(bot, storage=storage)
 
 
-class InputFSM(StatesGroup):
-    input_weather = State()
+class WeatherForm(StatesGroup):
+    city = State()
 
 
 @dp.message_handler(commands=['start'])
@@ -36,13 +37,15 @@ async def Start_command(message: types.Message):
                         'хочеш дізнатися погоду', reply_markup=keyboard)
 
 
-@dp.message_handler(text="На 1 день")
+@dp.message_handler(text='На 1 день')
 async def weather_1_day(message: types.Message):
     await message.answer("Відмінний вибір!, Введи назву міста")
-    await InputFSM.input_weather.set()
+    await WeatherForm.city.set()
 
-    @dp.message_handler(state=InputFSM.input_weather)
+    @dp.message_handler(state=WeatherForm.city)
     async def get_weather(message: types.Message, state: FSMContext):
+        await state.update_data(city=message.text)
+
         code_to_smile = {
             'Clear': 'Ясно \U00002600',
             'Clouds': 'Хмарно \U00002601',
@@ -54,8 +57,8 @@ async def weather_1_day(message: types.Message):
 
         try:
             r = requests.get(
-                f'https://api.openweathermap.org/data/2.5/weather?q={message.text}'
-                f'&appid={open_weather_token}&units=metric'
+                f'https://api.openweathermap.org/data/2.5/weather?q='
+                f'{message.text}&appid={open_weather_token}&units=metric'
             )
             data = r.json()
 
@@ -85,19 +88,22 @@ async def weather_1_day(message: types.Message):
                 f'Вітер: {wind} м/с\nСхід сонця: {sunrise_timestamp}\n'
                 f'Захід сонця: {sunset_timestamp}\n'
                 f'Тривалість дня: {length_of_the_day}\n'
-                f'Гарного дня!')
+                f'Гарного дня!', reply_markup=types.ReplyKeyboardRemove())
             await state.finish()
-        except Exception:
+        except Exception as error:
+            print(error)
             await message.reply('\U00002620Перевірте назву міста\U00002620')
 
 
-@dp.message_handler(text="На 5 днів")
+@dp.message_handler(text='На 5 днів')
 async def weather_5_day(message: types.Message):
-    await message.reply("Введи назву міста")
-    await InputFSM.input_weather.set()
+    await message.answer("Введи назву міста")
+    await WeatherForm.city.set()
 
-    @dp.message_handler(state=InputFSM.input_weather)
+    @dp.message_handler(state=WeatherForm.city)
     async def get_weathers(message: types.Message, state: FSMContext):
+        await state.update_data(city=message.text)
+
         code_to_smile = {
             'Clear': 'Ясно \U00002600',
             'Clouds': 'Хмарно \U00002601',
@@ -120,7 +126,9 @@ async def weather_5_day(message: types.Message):
 
             day_1 = {
                 'city': data['city']['name'],
-                'date': str(datetime.datetime.fromtimestamp(data['list'][0]['dt']))[:10],
+                'date': str(
+                    datetime.datetime.fromtimestamp(data['list'][0]['dt']))[
+                        :10],
                 'humidity': data['list'][0]['main']['humidity'],
                 'pressure': data['list'][0]['main']['pressure'],
                 'temp': data['list'][0]['main']['temp'],
@@ -136,7 +144,8 @@ async def weather_5_day(message: types.Message):
 
             day_2 = {
                 'city': data['city']['name'],
-                'date': str(datetime.datetime.fromtimestamp(data['list'][10]['dt']))[:10],
+                'date': str(datetime.datetime.fromtimestamp(
+                    data['list'][10]['dt']))[:10],
                 'humidity': data['list'][10]['main']['humidity'],
                 'pressure': data['list'][10]['main']['pressure'],
                 'temp': data['list'][10]['main']['temp'],
@@ -152,7 +161,8 @@ async def weather_5_day(message: types.Message):
 
             day_3 = {
                 'city': data['city']['name'],
-                'date': str(datetime.datetime.fromtimestamp(data['list'][18]['dt']))[:10],
+                'date': str(datetime.datetime.fromtimestamp(
+                    data['list'][18]['dt']))[:10],
                 'humidity': data['list'][18]['main']['humidity'],
                 'pressure': data['list'][18]['main']['pressure'],
                 'temp': data['list'][18]['main']['temp'],
@@ -168,7 +178,8 @@ async def weather_5_day(message: types.Message):
 
             day_4 = {
                 'city': data['city']['name'],
-                'date': str(datetime.datetime.fromtimestamp(data['list'][26]['dt']))[:10],
+                'date': str(datetime.datetime.fromtimestamp(
+                    data['list'][26]['dt']))[:10],
                 'humidity': data['list'][26]['main']['humidity'],
                 'pressure': data['list'][26]['main']['pressure'],
                 'temp': data['list'][26]['main']['temp'],
@@ -184,7 +195,8 @@ async def weather_5_day(message: types.Message):
 
             day_5 = {
                 'city': data['city']['name'],
-                'date': str(datetime.datetime.fromtimestamp(data['list'][34]['dt']))[:10],
+                'date': str(datetime.datetime.fromtimestamp(
+                    data['list'][34]['dt']))[:10],
                 'humidity': data['list'][34]['main']['humidity'],
                 'pressure': data['list'][34]['main']['pressure'],
                 'temp': data['list'][34]['main']['temp'],
@@ -200,33 +212,39 @@ async def weather_5_day(message: types.Message):
 
             await message.reply(
                 f'###{day_1["date"]}###\n'
-                f'Погода в місті: {day_1["city"]}\nТемпература: {day_1["temp"]}C° {wd}\n'
-                f'Вологість: {day_1["humidity"]}%\nТиск: {day_1["pressure"]} мм.рт.ст\n'
-                f'Вітер: {day_1["wind"]} м/с\n'
-                f'Видимість: {day_1["visibility"]}\n\n'
+                f'Погода в місті: {day_1["city"]}\nТемпература: '
+                f'{day_1["temp"]}C° {wd}\n Вологість: {day_1["humidity"]}%\n'
+                f'Тиск: {day_1["pressure"]} мм.рт.ст\n '
+                f'Вітер: {day_1["wind"]} м/с\n '
+                f'Видимість: {day_1["visibility"]} м\n\n'
                 f'###{day_2["date"]}###\n'
-                f'Погода в місті: {day_2["city"]}\nТемпература: {day_2["temp"]}C° {wd_2}\n'
-                f'Вологість: {day_2["humidity"]}%\nТиск: {day_2["pressure"]} мм.рт.ст\n'
+                f'Погода в місті: {day_2["city"]}\nТемпература: '
+                f'{day_2["temp"]}C° {wd_2}\n Вологість: {day_2["humidity"]}%\n'
+                f'Тиск: {day_2["pressure"]} мм.рт.ст\n'
                 f'Вітер: {day_2["wind"]} м/с\n'
                 f'Видимість: {day_2["visibility"]}\n\n'
                 f'###{day_3["date"]}###\n'
-                f'Погода в місті: {day_3["city"]}\nТемпература: {day_3["temp"]}C° {wd_3}\n'
-                f'Вологість: {day_3["humidity"]}%\nТиск: {day_3["pressure"]} мм.рт.ст\n'
+                f'Погода в місті: {day_3["city"]}\nТемпература: '
+                f'{day_3["temp"]}C° {wd_3}\n Вологість: {day_3["humidity"]}%\n'
+                f'Тиск: {day_3["pressure"]} мм.рт.ст\n'
                 f'Вітер: {day_3["wind"]} м/с\n'
                 f'Видимість: {day_3["visibility"]}\n\n'
                 f'###{day_4["date"]}###\n'
-                f'Погода в місті: {day_4["city"]}\nТемпература: {day_4["temp"]}C° {wd_4}\n'
-                f'Вологість: {day_4["humidity"]}%\nТиск: {day_4["pressure"]} мм.рт.ст\n'
+                f'Погода в місті: {day_4["city"]}\nТемпература: '
+                f'{day_4["temp"]}C° {wd_4}\n Вологість: {day_4["humidity"]}%\n'
+                f'Тиск: {day_4["pressure"]} мм.рт.ст\n'
                 f'Вітер: {day_4["wind"]} м/с\n'
                 f'Видимість: {day_4["visibility"]}\n\n'
                 f'###{day_5["date"]}###\n'
-                f'Погода в місті: {day_5["city"]}\nТемпература: {day_5["temp"]}C° {wd_5}\n'
-                f'Вологість: {day_5["humidity"]}%\nТиск: {day_5["pressure"]} мм.рт.ст\n'
+                f'Погода в місті: {day_5["city"]}\nТемпература: '
+                f'{day_5["temp"]}C° {wd_5}\n Вологість: {day_5["humidity"]}%\n'
+                f'Тиск: {day_5["pressure"]} мм.рт.ст\n'
                 f'Вітер: {day_5["wind"]} м/с\n'
                 f'Видимість: {day_5["visibility"]}\n\n'
-                f'Гарного дня!')
+                f'Гарного дня!', reply_markup=types.ReplyKeyboardRemove())
             await state.finish()
-        except Exception:
+        except Exception as error:
+            print(error)
             await message.reply('\U00002620Перевірте назву міста\U00002620')
 
 
