@@ -3,6 +3,7 @@ import requests
 from decouple import config
 from datetime import datetime
 
+
 code_to_smile = {
         'Clear': 'Ясно \U00002600',
         'Clouds': 'Хмарно \U00002601',
@@ -49,9 +50,9 @@ def get_weather(city, weather_toke):
                 wd = code_to_smile[i]
                 smail.append(wd)
 
-        for num in range(0, 34, 8):
+        for num in range(8):
             print(
-                f'### {date[num][:10]} ###\n'
+                f'### {date[num]} ###\n'
                 f'Погода в місті: {city}\n'
                 f'Температура: {temp[num]}C° {smail[num]}\n'
                 f'Вологість: {humidity[num]}%\n'
@@ -68,8 +69,8 @@ def get_weather(city, weather_toke):
 def main():
 
     weather_token = config('WEATHER_KEY')
-    city = input('Введіть місто: ')
-    get_weather(city, weather_token)
+    # city = input('Введіть місто: ')
+    get_weather('Жмеринка', weather_token)
 
 
 if __name__ == '__main__':
