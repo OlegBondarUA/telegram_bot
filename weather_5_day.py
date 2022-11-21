@@ -34,7 +34,8 @@ def get_weather(city, weather_toke):
             print(
                 f'### {str(datetime.fromtimestamp(item["dt"]))[:10]} ###\n'
                 f'Погода в місті: {data["city"]["name"]}\n'
-                f'Температура: {item["main"]["temp"]}C°{wd}\n'
+                f'Температура: {float("{:.1f}".format(item["main"]["temp"]))}C°'
+                f'{wd}\n'
                 f'Вологість: {item["main"]["humidity"]}%\n'
                 f'Тиск: {item["main"]["pressure"]} мм.рт.ст\n'
                 f'Вітер: {item["wind"]["speed"]} м/с\n'
