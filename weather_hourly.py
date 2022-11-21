@@ -26,41 +26,21 @@ def get_weather(city, weather_toke):
 
         data = request.json()
 
-        city = data['city']['name']
-        date = []
-        humidity = []
-        pressure = []
-        temp = []
-        weather = []
-        wind = []
-        visibility = []
-        smail = []
-
-        for item in data['list']:
-            date.append(str(datetime.fromtimestamp(item['dt'])))
-            humidity.append(item['main']['humidity'])
-            pressure.append(item['main']['pressure'])
-            temp.append(item['main']['temp'])
-            weather.append(item['weather'][0]['main'])
-            wind.append(item['wind']['speed'])
-            visibility.append(item['visibility'])
-
-        for i in weather:
-            if i in code_to_smile:
-                wd = code_to_smile[i]
-                smail.append(wd)
-
-        for num in range(8):
+        for item in data['list'][0:8:]:
+            if item['weather'][0]['main'] in code_to_smile:
+                wd = code_to_smile[item['weather'][0]['main']]
+            else:
+                wd = 'Глянь у вікно, не розумію що там за погода!'
             print(
-                f'### {date[num]} ###\n'
-                f'Погода в місті: {city}\n'
-                f'Температура: {temp[num]}C° {smail[num]}\n'
-                f'Вологість: {humidity[num]}%\n'
-                f'Тиск: {pressure[num]} мм.рт.ст\n'
-                f'Вітер: {wind[num]} м/с\n'
-                f'Видимість: {visibility[num]}\n\n'
-                f'Гарного дня!'
+                f'### {str(datetime.fromtimestamp(item["dt"]))} ###\n'
+                f'Погода в місті: {data["city"]["name"]}\n'
+                f'Температура: {item["main"]["temp"]}C°{wd}\n'
+                f'Вологість: {item["main"]["humidity"]}%\n'
+                f'Тиск: {item["main"]["pressure"]} мм.рт.ст\n'
+                f'Вітер: {item["wind"]["speed"]} м/с\n'
+                f'Видимість: {item["visibility"]}\n\n'
             )
+        print('Гарного дня!')
 
     except Exception as error:
         print(error)
@@ -69,8 +49,8 @@ def get_weather(city, weather_toke):
 def main():
 
     weather_token = config('WEATHER_KEY')
-    # city = input('Введіть місто: ')
-    get_weather('Жмеринка', weather_token)
+    city = input('Введіть місто: ')
+    get_weather(city, weather_token)
 
 
 if __name__ == '__main__':

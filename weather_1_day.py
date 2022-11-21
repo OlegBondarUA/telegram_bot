@@ -49,7 +49,7 @@ def get_weather(city, open_weather_toke):
             datetime.datetime.fromtimestamp(data['sys']['sunset']) -\
             datetime.datetime.fromtimestamp(data['sys']['sunrise'])
 
-        print(f'###{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}###\n'
+        print(f'### {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ###\n'
               f'Погода в місті: {city}\nТемпература: {cur_weather}C° {wd}\n'
               f'Вологість: {humidity}%\nТиск: {pressure} мм.рт.ст\n'
               f'Вітер: {wind} м/с\nСхід сонця: {sunrise_timestamp}\n'
