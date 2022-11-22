@@ -1,7 +1,7 @@
 import datetime
 import requests
 from decouple import config
-from pprint import pprint
+
 
 open_weather_token = config('WEATHER_KEY')
 
@@ -28,7 +28,6 @@ def get_weather(city, open_weather_toke):
             f'{city}&appid={open_weather_toke}&units=metric'
         )
         data = request.json()
-        pprint(data)
 
         city = data['name']
         cur_weather = data['main']['temp']
