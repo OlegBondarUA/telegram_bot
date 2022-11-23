@@ -5,10 +5,7 @@ from decouple import config
 
 open_weather_token = config('WEATHER_KEY')
 
-
-def get_weather(city, open_weather_toke):
-
-    code_to_smile = {
+code_to_smile = {
         'Clear': 'Ясно \U00002600',
         'Clouds': 'Хмарно \U00002601',
         'Overcast clouds': 'Похмурі хмари \U00002601',
@@ -21,6 +18,9 @@ def get_weather(city, open_weather_toke):
         'Mist': 'Туман \U0001F32B',
         'Light mist': 'Туман \U0001F32B'
     }
+
+
+def get_weather(city, open_weather_toke):
 
     try:
         request = requests.get(

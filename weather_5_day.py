@@ -2,6 +2,7 @@ import requests
 
 from decouple import config
 from datetime import datetime
+from pprint import pprint
 
 
 code_to_smile = {
@@ -26,12 +27,13 @@ def get_weather(city, weather_toke):
 
         data = request.json()
 
+        weather = []
         for item in data['list'][0:34:8]:
             if item['weather'][0]['main'] in code_to_smile:
                 wd = code_to_smile[item['weather'][0]['main']]
             else:
                 wd = 'Глянь у вікно, не розумію що там за погода!'
-            print(
+            result = (
                 f'### {str(datetime.fromtimestamp(item["dt"]))[:10]} ###\n'
                 f'Погода в місті: {data["city"]["name"]}\n'
                 f'Температура: {float("{:.1f}".format(item["main"]["temp"]))}C°'
@@ -41,6 +43,8 @@ def get_weather(city, weather_toke):
                 f'Вітер: {item["wind"]["speed"]} м/с\n'
                 f'Видимість: {item["visibility"]}\n\n'
             )
+            weather.append(result)
+        pprint(weather)
         print('Гарного дня!')
 
     except Exception as error:
