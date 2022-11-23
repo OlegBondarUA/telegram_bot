@@ -1,4 +1,5 @@
 import requests
+import logging
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -17,17 +18,17 @@ bot = Bot(token=tg_bot_token)
 dp = Dispatcher(bot, storage=storage)
 
 code_to_smile = {
-        'Clear': 'Ясно \U00002600',
-        'Clouds': 'Хмарно \U00002601',
-        'Overcast clouds': 'Похмурі хмари \U00002601',
-        'Rain': 'Дощ \U00002614',
-        'Light rain': 'Невеликий дощ \U00002614',
-        'Drizzle': 'Дощ \U00002614',
-        'Thunderstorm': 'Сніг \U0001F328',
-        'Snow': 'Сніг \U0001F328',
-        'Light snow': 'Невеликий сніг \U0001F328',
-        'Mist': 'Туман \U0001F32B',
-        'Light mist': 'Туман \U0001F32B'
+        'Clear': 'Clear \U00002600',
+        'Clouds': 'Clouds \U00002601',
+        'Overcast clouds': 'Overcast clouds \U00002601',
+        'Rain': 'Rain \U00002614',
+        'Light rain': 'Light rain \U00002614',
+        'Drizzle': 'Drizzle \U00002614',
+        'Thunderstorm': 'Thunderstorm \U0001F328',
+        'Snow': 'Snow \U0001F328',
+        'Light snow': 'Light snow \U0001F328',
+        'Mist': 'Mist \U0001F32B',
+        'Light mist': 'Light mist \U0001F32B'
     }
 
 
@@ -38,25 +39,47 @@ class WeatherForm(StatesGroup):
 
 
 @dp.message_handler(commands=['start'])
-async def Start_command(message: types.Message):
+async def start_command(message: types.Message):
+    await message.reply("Hello! I'm a weather bot, I can tell you what the "
+                        "weather will be like elsewhere.\nTo start work, "
+                        "enter the command /begin")
+
+
+@dp.message_handler(commands=['begin'])
+async def begin_command(message: types.Message):
     kb = [
-        [types.KeyboardButton(text="На 1 день")] +
-        [types.KeyboardButton(text="На 5 днів")],
-        [types.KeyboardButton(text="Погодинна погода")],
-        [types.KeyboardButton(text='Геолокація', request_location=True)]
+        [types.KeyboardButton(text="Weather for 1 day")] +
+        [types.KeyboardButton(text="Weather for 5 day")] +
+        [types.KeyboardButton(text="Hourly weather")],
+        [types.KeyboardButton(text="Geolocation weather", request_location=True)],
+        [types.KeyboardButton(text="The official weather source")] +
+        [types.KeyboardButton(text="Пропозиції для розвитку!")]
         ]
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
     )
 
-    await message.reply('Привіт! Вибери на скільки днів ти '
-                        'хочеш дізнатися погоду', reply_markup=keyboard)
+    await message.reply('Choose your weather option '
+                        'and click on the button below.', reply_markup=keyboard)
 
 
-@dp.message_handler(text='На 1 день')
+@dp.message_handler(state='*', commands=['cancel'])
+async def cancel_command(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    logging.info('Cancelling state %r', current_state)
+    await state.finish()
+    await message.answer('We entered the /cancel command',
+                         reply_markup=types.ReplyKeyboardRemove())
+
+
+@dp.message_handler(text='Weather for 1 day')
 async def weather_1_day(message: types.Message):
-    await bot.send_message(message.chat.id, "Чудовий вибір!, Введи назву міста")
+    await bot.send_message(message.chat.id, "Great! Now enter the name of the "
+                                            "city or press /cancel "
+                                            "if you change your mind.")
     await WeatherForm.city_for_one_day_weather.set()
 
 
@@ -78,7 +101,9 @@ async def get_weather(message: types.Message, state: FSMContext):
         if weather_description in code_to_smile:
             wd = code_to_smile[weather_description]
         else:
-            wd = 'Глянь у вікно, не розумію що там за погода!'
+            wd = "Look out the window, " \
+                 "I don't understand what kind of weather it is!"
+
         humidity = data['main']['humidity']
         pressure = data['main']['pressure']
         wind = data['wind']['speed']
@@ -92,22 +117,29 @@ async def get_weather(message: types.Message, state: FSMContext):
 
         await message.reply(
             f'### {datetime.now().strftime("%Y-%m-%d %H:%M")} ###\n'
-            f'Погода в місті: {city}\n'
-            f'Температура: {float("{:.1f}".format(cur_weather))}C° {wd}\n'
-            f'Вологість: {humidity}%\nТиск: {pressure} мм.рт.ст\n'
-            f'Вітер: {wind} м/с\nСхід сонця: {sunrise_timestamp}\n'
-            f'Захід сонця: {sunset_timestamp}\n'
-            f'Тривалість дня: {length_of_the_day}\n'
-            f'Гарного дня!', reply_markup=types.ReplyKeyboardRemove())
+            f'Weather in the city: {city}\n'
+            f'Temperature: {float("{:.1f}".format(cur_weather))}C° {wd}\n'
+            f'Humidity: {humidity}%\n'
+            f'Pressure: {pressure} мм.рт.ст\n'
+            f'Wind: {wind} м/с\n'
+            f'Sunrise: {sunrise_timestamp}\n'
+            f'Sunset: {sunset_timestamp}\n'
+            f'Day length: {length_of_the_day}\n'
+            f'Have a nice day!\nTo request the weather again, press /begin',
+            reply_markup=types.ReplyKeyboardRemove())
         await state.finish()
     except Exception as error:
         print(error)
-        await message.reply('\U00002620Перевірте назву міста\U00002620')
+        await message.reply(
+            "\U00002620Try to check the name of the city\U00002620",
+            "If it didn't help, we may have technical problems."
+        )
 
 
-@dp.message_handler(text='На 5 днів')
+@dp.message_handler(text='Weather for 5 day')
 async def weather_5_day(message: types.Message):
-    await message.reply("Введи назву міста")
+    await message.reply("Great! Now enter the name of the city or press /cancel"
+                        " if you change your mind.")
     await WeatherForm.city_for_five_day_weather.set()
 
 
@@ -122,40 +154,50 @@ async def get_weathers(message: types.Message, state: FSMContext):
         data = request.json()
 
         weather = []
+
         for item in data['list'][0:34:8]:
+
             if item['weather'][0]['main'] in code_to_smile:
                 wd = code_to_smile[item['weather'][0]['main']]
             else:
-                wd = 'Глянь у вікно, не розумію що там за погода!'
+                wd = "Look out the window, " \
+                     "I don't understand what kind of weather it is!"
+
             result = (
                 f'### {str(datetime.fromtimestamp(item["dt"]))[:10]} ###\n'
-                f'Погода в місті: {data["city"]["name"]}\n'
-                f'Температура: {float("{:.1f}".format(item["main"]["temp"]))}C°'
+                f'Weather in the city: {data["city"]["name"]}\n'
+                f'Temperature: {float("{:.1f}".format(item["main"]["temp"]))}C°'
                 f' {wd}\n'
-                f'Вологість: {item["main"]["humidity"]}%\n'
-                f'Тиск: {item["main"]["pressure"]} мм.рт.ст\n'
-                f'Вітер: {item["wind"]["speed"]} м/с\n'
-                f'Видимість: {item["visibility"]}\n\n'
+                f'Humidity: {item["main"]["humidity"]}%\n'
+                f'Pressure: {item["main"]["pressure"]} мм.рт.ст\n'
+                f'Wind: {item["wind"]["speed"]} м/с\n'
+                f'Visibility: {item["visibility"]}\n\n'
             )
             weather.append(result)
         await message.reply(f'{weather[0]} {weather[1]} {weather[2]} '
                             f'{weather[3]} {weather[4]}'
                             )
-        await message.reply('Гарного дня!', reply_markup=types.ReplyKeyboardRemove())
+        await message.reply('Have a nice day!\n'
+                            'To request the weather again, press /begin',
+                            reply_markup=types.ReplyKeyboardRemove())
         await state.finish()
     except Exception as error:
         print(error)
-        await message.reply('\U00002620Перевірте назву міста\U00002620')
+        await message.reply(
+            "\U00002620Try to check the name of the city\U00002620",
+            "If it didn't help, we may have technical problems."
+        )
 
 
-@dp.message_handler(text='Погодинна погода')
-async def weather_5_day(message: types.Message):
-    await message.reply("Введи назву міста")
+@dp.message_handler(text='Hourly weather')
+async def hourly_weather(message: types.Message):
+    await message.reply("Great! Now enter the name of the city or press /cancel"
+                        " if you change your mind.")
     await WeatherForm.city_for_hourly_weather.set()
 
 
 @dp.message_handler(state=WeatherForm.city_for_hourly_weather)
-async def get_weathers(message: types.Message, state: FSMContext):
+async def get_hourly_weathers(message: types.Message, state: FSMContext):
     await state.update_data(city=message.text)
 
     try:
@@ -169,32 +211,39 @@ async def get_weathers(message: types.Message, state: FSMContext):
             if item['weather'][0]['main'] in code_to_smile:
                 wd = code_to_smile[item['weather'][0]['main']]
             else:
-                wd = 'Глянь у вікно, не розумію що там за погода!'
+                wd = "Look out the window, " \
+                     "I don't understand what kind of weather it is!"
+
             result = (
                 f'### {str(datetime.fromtimestamp(item["dt"]))} ###\n'
-                f'Погода в місті: {data["city"]["name"]}\n'
-                f'Температура: {float("{:.1f}".format(item["main"]["temp"]))}C°'
+                f'Weather in the city: {data["city"]["name"]}\n'
+                f'Temperature: {float("{:.1f}".format(item["main"]["temp"]))}C°'
                 f' {wd}\n'
-                f'Вологість: {item["main"]["humidity"]}%\n'
-                f'Тиск: {item["main"]["pressure"]} мм.рт.ст\n'
-                f'Вітер: {item["wind"]["speed"]} м/с\n'
-                f'Видимість: {item["visibility"]}\n\n'
+                f'Humidity: {item["main"]["humidity"]}%\n'
+                f'Pressure: {item["main"]["pressure"]} мм.рт.ст\n'
+                f'Wind: {item["wind"]["speed"]} м/с\n'
+                f'Visibility: {item["visibility"]}\n\n'
             )
             weather.append(result)
         await message.reply(f'{weather[0]} {weather[1]} {weather[2]} '
                             f'{weather[3]} {weather[4]} {weather[5]} '
                             f'{weather[6]} {weather[7]}'
                             )
-
-        await message.reply('Гарного дня!', reply_markup=types.ReplyKeyboardRemove())
+        await message.reply('Have a nice day!\n'
+                            'To request the weather again, press /begin',
+                            reply_markup=types.ReplyKeyboardRemove())
         await state.finish()
     except Exception as error:
         print(error)
-        await message.reply('\U00002620Перевірте назву міста\U00002620')
+        await message.reply(
+            "\U00002620Try to check the name of the city\U00002620",
+            "If it didn't help, we may have technical problems."
+        )
 
 
 @dp.message_handler(content_types=['location'])
-async def location_weather(message):
+async def get_location_weather(message):
+    await message.reply("I'm already forming a message for a second.")
     try:
         if message.location is not None:
             lat = message.location['latitude']
@@ -213,7 +262,9 @@ async def location_weather(message):
             if weather_description in code_to_smile:
                 wd = code_to_smile[weather_description]
             else:
-                wd = 'Глянь у вікно, не розумію що там за погода!'
+                wd = "Look out the window, " \
+                     "I don't understand what kind of weather it is!"
+
             humidity = data['main']['humidity']
             pressure = data['main']['pressure']
             wind = data['wind']['speed']
@@ -227,17 +278,31 @@ async def location_weather(message):
 
             await message.reply(
                 f'### {datetime.now().strftime("%Y-%m-%d %H:%M")} ###\n'
-                f'Погода в місті: {city}\n'
-                f'Температура: {float("{:.1f}".format(cur_weather))}C° {wd}\n'
-                f'Вологість: {humidity}%\nТиск: {pressure} мм.рт.ст\n'
-                f'Вітер: {wind} м/с\nСхід сонця: {sunrise_timestamp}\n'
-                f'Захід сонця: {sunset_timestamp}\n'
-                f'Тривалість дня: {length_of_the_day}\n'
-                f'Гарного дня!'
+                f'Weather in the city: {city}\n'
+                f'Temperature: {float("{:.1f}".format(cur_weather))}C° {wd}\n'
+                f'Humidity: {humidity}%\n'
+                f'Pressure: {pressure} мм.рт.ст\n'
+                f'Wind: {wind} м/с\n'
+                f'Sunrise: {sunrise_timestamp}\n'
+                f'Sunset: {sunset_timestamp}\n'
+                f'Day length: {length_of_the_day}\n'
+                f'Have a nice day!\nTo request the weather again, press /begin',
+                reply_markup=types.ReplyKeyboardRemove()
             )
     except Exception as error:
         print(error)
-        await message.reply('\U00002620Перевірте назву міста\U00002620')
+        await message.reply(
+            "\U00002620Try to check the name of the city\U00002620",
+            "If it didn't help, we may have technical problems."
+        )
 
+
+@dp.message_handler(text='The official weather source')
+async def official_source(message):
+    await message.answer('https://openweathermap.org/'
+                         '\n\nHave a nice day!'
+                         '\nTo request the weather again, press /begin\n',
+                         reply_markup=types.ReplyKeyboardRemove()
+                         )
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
