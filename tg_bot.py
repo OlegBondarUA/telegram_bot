@@ -6,9 +6,12 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import executor
+from handlers.smile import code_to_smile
 
 from decouple import config
 from datetime import datetime
+
+from handlers import weather_1_day, weather_5_day
 
 open_weather_token = config('WEATHER_KEY')
 tg_bot_token = config('TELEGRAM_TOKEN')
@@ -17,24 +20,9 @@ bot = Bot(token=tg_bot_token)
 
 dp = Dispatcher(bot, storage=storage)
 
-code_to_smile = {
-        'Clear': 'Clear \U00002600',
-        'Clouds': 'Clouds \U00002601',
-        'Overcast clouds': 'Overcast clouds \U00002601',
-        'Rain': 'Rain \U00002614',
-        'Light rain': 'Light rain \U00002614',
-        'Drizzle': 'Drizzle \U00002614',
-        'Thunderstorm': 'Thunderstorm \U0001F328',
-        'Snow': 'Snow \U0001F328',
-        'Light snow': 'Light snow \U0001F328',
-        'Mist': 'Mist \U0001F32B',
-        'Light mist': 'Light mist \U0001F32B'
-    }
-
 
 class WeatherForm(StatesGroup):
-    city_for_one_day_weather = State()
-    city_for_five_day_weather = State()
+
     city_for_hourly_weather = State()
 
 
@@ -75,118 +63,8 @@ async def cancel_command(message: types.Message, state: FSMContext):
                          reply_markup=types.ReplyKeyboardRemove())
 
 
-@dp.message_handler(text='Weather for 1 day')
-async def weather_1_day(message: types.Message):
-    await bot.send_message(message.chat.id, "Great! Now enter the name of the "
-                                            "city or press /cancel "
-                                            "if you change your mind.")
-    await WeatherForm.city_for_one_day_weather.set()
-
-
-@dp.message_handler(state=WeatherForm.city_for_one_day_weather)
-async def get_weather(message: types.Message, state: FSMContext):
-    await state.update_data(city=message.text)
-
-    try:
-        request = requests.get(
-            f'https://api.openweathermap.org/data/2.5/weather?q='
-            f'{message.text}&appid={open_weather_token}&units=metric'
-        )
-        data = request.json()
-
-        city = data['name']
-        cur_weather = data['main']['temp']
-
-        weather_description = data['weather'][0]['main']
-        if weather_description in code_to_smile:
-            wd = code_to_smile[weather_description]
-        else:
-            wd = "Look out the window, " \
-                 "I don't understand what kind of weather it is!"
-
-        humidity = data['main']['humidity']
-        pressure = data['main']['pressure']
-        wind = data['wind']['speed']
-        sunrise_timestamp = \
-            datetime.fromtimestamp(data['sys']['sunrise'])
-        sunset_timestamp = \
-            datetime.fromtimestamp(data['sys']['sunset'])
-        length_of_the_day = \
-            datetime.fromtimestamp(data['sys']['sunset']) - \
-            datetime.fromtimestamp(data['sys']['sunrise'])
-
-        await message.reply(
-            f'### {datetime.now().strftime("%Y-%m-%d %H:%M")} ###\n'
-            f'Weather in the city: {city}\n'
-            f'Temperature: {float("{:.1f}".format(cur_weather))}C° {wd}\n'
-            f'Humidity: {humidity}%\n'
-            f'Pressure: {pressure} мм.рт.ст\n'
-            f'Wind: {wind} м/с\n'
-            f'Sunrise: {sunrise_timestamp}\n'
-            f'Sunset: {sunset_timestamp}\n'
-            f'Day length: {length_of_the_day}\n'
-            f'Have a nice day!\nTo request the weather again, press /begin',
-            reply_markup=types.ReplyKeyboardRemove())
-        await state.finish()
-    except Exception as error:
-        print(error)
-        await message.reply(
-            "\U00002620Try to check the name of the city\U00002620",
-            "If it didn't help, we may have technical problems."
-        )
-
-
-@dp.message_handler(text='Weather for 5 day')
-async def weather_5_day(message: types.Message):
-    await message.reply("Great! Now enter the name of the city or press /cancel"
-                        " if you change your mind.")
-    await WeatherForm.city_for_five_day_weather.set()
-
-
-@dp.message_handler(state=WeatherForm.city_for_five_day_weather)
-async def get_weathers(message: types.Message, state: FSMContext):
-    await state.update_data(city=message.text)
-
-    try:
-        request = requests.get(f'https://api.openweathermap.org/data/2.5/forecast?'
-                               f'q={message.text}&appid={open_weather_token}&units=metric')
-
-        data = request.json()
-
-        weather = []
-
-        for item in data['list'][0:34:8]:
-
-            if item['weather'][0]['main'] in code_to_smile:
-                wd = code_to_smile[item['weather'][0]['main']]
-            else:
-                wd = "Look out the window, " \
-                     "I don't understand what kind of weather it is!"
-
-            result = (
-                f'### {str(datetime.fromtimestamp(item["dt"]))[:10]} ###\n'
-                f'Weather in the city: {data["city"]["name"]}\n'
-                f'Temperature: {float("{:.1f}".format(item["main"]["temp"]))}C°'
-                f' {wd}\n'
-                f'Humidity: {item["main"]["humidity"]}%\n'
-                f'Pressure: {item["main"]["pressure"]} мм.рт.ст\n'
-                f'Wind: {item["wind"]["speed"]} м/с\n'
-                f'Visibility: {item["visibility"]}\n\n'
-            )
-            weather.append(result)
-        await message.reply(f'{weather[0]} {weather[1]} {weather[2]} '
-                            f'{weather[3]} {weather[4]}'
-                            )
-        await message.reply('Have a nice day!\n'
-                            'To request the weather again, press /begin',
-                            reply_markup=types.ReplyKeyboardRemove())
-        await state.finish()
-    except Exception as error:
-        print(error)
-        await message.reply(
-            "\U00002620Try to check the name of the city\U00002620",
-            "If it didn't help, we may have technical problems."
-        )
+weather_1_day.register_handlers_weather_1_day(dp)
+weather_5_day.register_handlers_weather_5_day(dp)
 
 
 @dp.message_handler(text='Hourly weather')
