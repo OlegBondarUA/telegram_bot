@@ -27,7 +27,7 @@ async def begin_command(message: types.Message):
         [types.KeyboardButton(text="Hourly weather")],
         [types.KeyboardButton(text="Geolocation weather", request_location=True)],
         [types.KeyboardButton(text="The official weather source")] +
-        [types.KeyboardButton(text="Пропозиції для розвитку!")]
+        [types.KeyboardButton(text="Suggestions for development!")]
         ]
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,

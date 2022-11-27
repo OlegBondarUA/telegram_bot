@@ -20,9 +20,9 @@ async def official_source(message):
 
 # @dp.message_handler(text='Пропозиції для розвитку!')
 async def message_acceptance(message: types.Message):
-    await message.reply('Чудово розкажіть нам про помилку у роботі бота'
-                        ' або запропонуйте нам щось. Що би ви хотіли '
-                        'бачити в цьому боті.')
+    await message.reply('Great, tell us about a bug in the bot or give us '
+                        'something to suggest. '
+                        'What would you like to see in this bot.')
     await WeatherForm.message_client.set()
 
 
@@ -40,7 +40,7 @@ async def message_save(message: types.Message, state: FSMContext):
     )
     await state.finish()
 
-    await message.reply('Дякую за ваш відгук!'
+    await message.reply('Thank you for your feedback!'
                         '\nTo request the weather again, press /begin\n',
                         reply_markup=types.ReplyKeyboardRemove()
                         )
@@ -53,7 +53,7 @@ def register_handlers_others(dp: Dispatcher):
         official_source, text='The official weather source'
     )
     dp.register_message_handler(
-        message_acceptance, text='Пропозиції для розвитку!'
+        message_acceptance, text='Suggestions for development!'
     )
     dp.register_message_handler(
         message_save, state=WeatherForm.message_client
