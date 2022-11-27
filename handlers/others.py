@@ -1,4 +1,5 @@
 from aiogram import types, Dispatcher
+from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from table_for_bot import User, Message
@@ -26,7 +27,7 @@ async def message_acceptance(message: types.Message):
 
 
 # @dp.message_handler(state=WeatherForm.message_client)
-async def message_save(message: types.Message):
+async def message_save(message: types.Message, state: FSMContext):
 
     us = User.get_or_create(
         user_name=str(message['chat']['username']),
@@ -37,6 +38,7 @@ async def message_save(message: types.Message):
         message=str(message['text']),
         chat_id=int(message['chat']['id'])
     )
+    await state.finish()
 
     await message.reply('Дякую за ваш відгук!'
                         '\nTo request the weather again, press /begin\n',

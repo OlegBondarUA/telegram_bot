@@ -2,6 +2,14 @@ import logging
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
+
+
+class WeatherForm(StatesGroup):
+    city_for_one_day_weather = State()
+    city_for_five_day_weather = State()
+    city_for_hourly_weather = State()
+    message_client = State()
 
 
 # @dp.message_handler(commands=['start'])
@@ -44,4 +52,4 @@ async def cancel_command(message: types.Message, state: FSMContext):
 def register_handlers_commands(dp: Dispatcher):
     dp.register_message_handler(start_command, commands=['start'])
     dp.register_message_handler(begin_command, commands=['begin'])
-    dp.register_message_handler(cancel_command, commands=['cancel'])
+    dp.register_message_handler(cancel_command, state='*', commands=['cancel'])
